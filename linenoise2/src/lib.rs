@@ -15,6 +15,7 @@ pub mod linenoise2 {
         // TODO
         propmt: &'a str,
         buf: String,
+        bufs: Vec<String>,
     }
 
     impl<'a> Linenoise2State<'a> {
@@ -22,8 +23,14 @@ pub mod linenoise2 {
             Self {
                 propmt: propmt,
                 buf: String::new(),
+                bufs: Vec::new(),
             }
         }
+    }
+
+    fn linenoise2_edit_space(l: &mut Linenoise2State) {
+        l.bufs.push(l.buf.clone());
+        l.buf.clear();
     }
 
     fn linenoise2_edit_insert(l: &mut Linenoise2State, c: u8) {
@@ -87,14 +94,14 @@ pub mod linenoise2 {
         }
     }
 
-    pub fn linenoise2(propmt: &str) -> Option<String> {
+    pub fn linenoise2(propmt: &str) -> Option<Vec<String>> {
         let mut l = Linenoise2State::new(propmt);
-        let mut result: Option<String> = match stdout().write(l.propmt.as_bytes()) {
+        let mut result: Option<Vec<String>> = match stdout().write(l.propmt.as_bytes()) {
             Err(_) => None,
             _ => {
                 // 刷新缓冲区
                 stdout().flush().unwrap();
-                Some(String::new())
+                Some(Vec::new())
             }
         };
 
@@ -112,7 +119,8 @@ pub mod linenoise2 {
             let _ = match n {
                 10 | 13 => {
                     // enter 
-                    result = Some(l.buf);
+                    linenoise2_edit_space(&mut l);
+                    result = Some(l.bufs);
                     break;
                 }
                 3 => {
@@ -125,7 +133,7 @@ pub mod linenoise2 {
                 }
                 8 | 127 => {
                     // backspace
-                    // todo!("backspace");
+                    
                 }
                 27 => {
                     // esc
@@ -134,6 +142,10 @@ pub mod linenoise2 {
                 9 => {
                     // tab
                     // todo!("tab");
+                }
+                32 => {
+                    // space
+                    linenoise2_edit_space(&mut l);
                 }
                 _ => {
                     // other
@@ -171,7 +183,9 @@ mod tests {
     fn test_linenoise2() {
         match linenoise2::linenoise2("propmt") {
             Some(line) => {
-                println!("line: {}", line);
+                for l in line {
+                    println!("line: {}", l);
+                }
             },
             None => {
                 println!("None");

@@ -5,9 +5,10 @@ fn main() {
     // TODO
     loop {
         let _ = match linenoise2::linenoise2("propmt> ") {
-            Some(line) => {
-                println!("line: {}", line);
-                line
+            Some(lines) => {
+                for line in lines {
+                    println!("line: {}", line);
+                }
             },
             None => {
                 break;
