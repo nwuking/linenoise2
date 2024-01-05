@@ -16,6 +16,7 @@ pub mod linenoise2 {
         propmt: &'a str,
         buf: String,
         bufs: Vec<String>,
+        space: bool,
     }
 
     impl<'a> Linenoise2State<'a> {
@@ -24,6 +25,19 @@ pub mod linenoise2 {
                 propmt: propmt,
                 buf: String::new(),
                 bufs: Vec::new(),
+                space: false,
+            }
+        }
+    }
+
+    fn linenoise2_edit_delete(l: &mut Linenoise2State) {
+        match l.buf.pop() {
+            Some(_) => {},
+            None => {
+                l.buf = match l.bufs.pop() {
+                    Some(buf) => buf,
+                    None => String::new(),
+                };
             }
         }
     }
@@ -133,7 +147,7 @@ pub mod linenoise2 {
                 }
                 8 | 127 => {
                     // backspace
-                    
+                    linenoise2_edit_delete(&mut l);
                 }
                 27 => {
                     // esc
